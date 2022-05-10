@@ -7,19 +7,17 @@ module.exports = class TickListener {
     tickers,
     instances,
     notifier,
-    // signalLogger,
+    signalLogger,
     strategyManager,
     exchangeManager,
-    pairStateManager,
     logger,
   ) {
     this.tickers = tickers;
     this.instances = instances;
     this.notifier = notifier;
-    // this.signalLogger = signalLogger;
+    this.signalLogger = signalLogger;
     this.strategyManager = strategyManager;
     this.exchangeManager = exchangeManager;
-    this.pairStateManager = pairStateManager;
     this.logger = logger;
 
     this.notified = {};
@@ -72,20 +70,27 @@ module.exports = class TickListener {
       // console.log('blocked')
     } else {
       this.notified[symbol.exchange + symbol.symbol + strategyKey] = new Date();
-      this.notifier.send(`[${signal} (${strategyKey})` + `] ${symbol.exchange}:${symbol.symbol} - ${ticker.ask}`);
+      const messageInfo = {
+        signal,
+        strategyKey,
+        exchange: symbol.exchange,
+        symbol: symbol.symbol,
+        price: ticker.ask
+      }
+      this.notifier.send(`[${signal} (${strategyKey})` + `] ${symbol.exchange}:${symbol.symbol} - ${ticker.ask}`, messageInfo);
 
       // log signal
-      // this.signalLogger.signal(
-      //   symbol.exchange,
-      //   symbol.symbol,
-      //   {
-      //     price: ticker.ask,
-      //     strategy: strategyKey,
-      //     raw: JSON.stringify(result)
-      //   },
-      //   signal,
-      //   strategyKey
-      // );
+      this.signalLogger.signal(
+        symbol.exchange,
+        symbol.symbol,
+        {
+          price: ticker.ask,
+          strategy: strategyKey,
+          raw: JSON.stringify(result)
+        },
+        signal,
+        strategyKey
+      );
     }
   }
 
@@ -108,78 +113,78 @@ module.exports = class TickListener {
       }
     ];
 
-    // types.forEach(type => {
-    //   me.logger.info(`Strategy: "${type.name}" found "${type.items.length}" valid symbols`);
+    types.forEach(type => {
+      me.logger.info(`Strategy: "${type.name}" found "${type.items.length}" valid symbols`);
 
-    //   type.items.forEach(symbol => {
-    //     // map strategies
-    //     let strategies = [];
-    //     if (type.name === 'watch') {
-    //       strategies = symbol.strategies;
-    //     } else if (type.name === 'trade') {
-    //       strategies = symbol.trade.strategies;
-    //     }
+      type.items.forEach(symbol => {
+        // map strategies
+        let strategies = [];
+        if (type.name === 'watch') {
+          strategies = symbol.strategies;
+        } else if (type.name === 'trade') {
+          strategies = symbol.trade.strategies;
+        }
 
-    //     strategies.forEach(strategy => {
-    //       let myInterval = '1m';
+        strategies.forEach(strategy => {
+          let myInterval = '1m';
 
-    //       if (strategy.interval) {
-    //         myInterval = strategy.interval;
-    //       } else {
-    //         const strategyInstance = me.strategyManager.findStrategy(strategy.strategy);
-    //         if (typeof strategyInstance.getTickPeriod === 'function') {
-    //           myInterval = strategyInstance.getTickPeriod();
-    //         }
-    //       }
+          if (strategy.interval) {
+            myInterval = strategy.interval;
+          } else {
+            const strategyInstance = me.strategyManager.findStrategy(strategy.strategy);
+            if (typeof strategyInstance.getTickPeriod === 'function') {
+              myInterval = strategyInstance.getTickPeriod();
+            }
+          }
 
-    //       const [timeout, interval] = me.getFirstTimeoutAndInterval(myInterval);
+          const [timeout, interval] = me.getFirstTimeoutAndInterval(myInterval);
 
-    //       // random add 5-15 sec to init start for each to not run all at same time
-    //       const timeoutWindow = timeout + (Math.floor(Math.random() * 9000) + 5000);
+          // random add 5-15 sec to init start for each to not run all at same time
+          const timeoutWindow = timeout + (Math.floor(Math.random() * 9000) + 5000);
 
-    //       me.logger.info(
-    //         `"${symbol.exchange}" - "${symbol.symbol}" - "${type.name}" - init strategy "${
-    //           strategy.strategy
-    //         }" (${myInterval}) in ${(timeoutWindow / 60 / 1000).toFixed(3)} minutes`
-    //       );
+          me.logger.info(
+            `"${symbol.exchange}" - "${symbol.symbol}" - "${type.name}" - init strategy "${
+              strategy.strategy
+            }" (${myInterval}) in ${(timeoutWindow / 60 / 1000).toFixed(3)} minutes`
+          );
 
-    //       const strategyIntervalCallback = async () => {
-    //         /*
-    //         // logging can be high traffic on alot of pairs
-    //         me.logger.debug(
-    //           `"${symbol.exchange}" - "${symbol.symbol}" - "${type.name}" strategy running "${strategy.strategy}"`
-    //         );
-    //         */
+          const strategyIntervalCallback = async () => {
+            /*
+            // logging can be high traffic on alot of pairs
+            me.logger.debug(
+              `"${symbol.exchange}" - "${symbol.symbol}" - "${type.name}" strategy running "${strategy.strategy}"`
+            );
+            */
 
-    //         if (type.name === 'watch') {
-    //           await me.visitStrategy(strategy, symbol);
-    //         } else if (type.name === 'trade') {
-    //           await me.visitTradeStrategy(strategy, symbol);
-    //         } else {
-    //           throw new Error(`Invalid strategy type${type.name}`);
-    //         }
-    //       };
+            if (type.name === 'watch') {
+              await me.visitStrategy(strategy, symbol);
+            } else if (type.name === 'trade') {
+              await me.visitTradeStrategy(strategy, symbol);
+            } else {
+              throw new Error(`Invalid strategy type${type.name}`);
+            }
+          };
 
-    //       setTimeout(() => {
-    //         me.logger.info(
-    //           `"${symbol.exchange}" - "${symbol.symbol}" - "${type.name}" first strategy run "${
-    //             strategy.strategy
-    //           }" now every ${(interval / 60 / 1000).toFixed(2)} minutes`
-    //         );
+          setTimeout(() => {
+            me.logger.info(
+              `"${symbol.exchange}" - "${symbol.symbol}" - "${type.name}" first strategy run "${
+                strategy.strategy
+              }" now every ${(interval / 60 / 1000).toFixed(2)} minutes`
+            );
 
-    //         // first run call
-    //         setTimeout(async () => {
-    //           await strategyIntervalCallback();
-    //         }, 1000 + Math.floor(Math.random() * (800 - 300 + 1)) + 100);
+            // first run call
+            setTimeout(async () => {
+              await strategyIntervalCallback();
+            }, 1000 + Math.floor(Math.random() * (800 - 300 + 1)) + 100);
 
-    //         // continuous run
-    //         setInterval(async () => {
-    //           await strategyIntervalCallback();
-    //         }, interval);
-    //       }, timeoutWindow);
-    //     });
-    //   });
-    // });
+            // continuous run
+            setInterval(async () => {
+              await strategyIntervalCallback();
+            }, interval);
+          }, timeoutWindow);
+        });
+      });
+    });
   }
 
   getFirstTimeoutAndInterval(period) {

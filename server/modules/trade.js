@@ -39,7 +39,6 @@ module.exports = class Trade {
     const message = `Start: ${instanceId} - ${os.hostname()} - ${os.platform()} - ${moment().format()} - ${notifyActivePairs.join(
       ', '
     )}`;
-    console.log(message)
 
     // this.notify.send(message);
 
@@ -56,34 +55,33 @@ module.exports = class Trade {
       }, 1000);
 
       // order create tick
-      // setInterval(() => {
-      //   eventEmitter.emit('signal_tick', {});
-      // }, this.systemUtil.getConfig('tick.signal', 10600));
+      setInterval(() => {
+        eventEmitter.emit('signal_tick', {});
+      }, this.systemUtil.getConfig('tick.signal', 10600));
      
-      // setInterval(() => {
-      //   eventEmitter.emit('tick_ordering', {});
-      // }, this.systemUtil.getConfig('tick.ordering', 10800));
+      setInterval(() => {
+        eventEmitter.emit('tick_ordering', {});
+      }, this.systemUtil.getConfig('tick.ordering', 10800));
     }, this.systemUtil.getConfig('tick.warmup', 30000));
 
     // cronjob like tasks
-    // setInterval(async () => {
-    //   await me.logsRepository.cleanOldLogEntries();
-    //   await me.tickerLogRepository.cleanOldLogEntries();
+    setInterval(async () => {
+      await me.logsRepository.cleanOldLogEntries();
+      await me.tickerLogRepository.cleanOldLogEntries();
 
-    //   me.logger.debug('Logs: Cleanup old entries');
-    // }, 86455000);
+      me.logger.debug('Logs: Cleanup old entries');
+    }, 86455000);
 
-    // const { tickers } = this;
+    const { tickers } = this;
 
-    // eventEmitter.on('ticker', async function(tickerEvent) {
-    //   tickers.set(tickerEvent.ticker);
-    //   me.tickerDatabaseListener.onTicker(tickerEvent);
-    // });
+    eventEmitter.on('ticker', async function(tickerEvent) {
+      tickers.set(tickerEvent.ticker);
+      me.tickerDatabaseListener.onTicker(tickerEvent);
+    });
 
-    // eventEmitter.on('tick', async () => {
-    //   me.tickListener.onTick();
-    // });
-
+    eventEmitter.on('tick', async () => {
+      me.tickListener.onTick();
+    });
 
   }
 };
