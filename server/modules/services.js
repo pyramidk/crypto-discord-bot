@@ -4,10 +4,10 @@ const events = require('events');
 
 const { createLogger, transports, format } = require('winston');
 
-// const _ = require('lodash');
+const _ = require('lodash');
 const Sqlite = require('better-sqlite3');
-// const Notify = require('../notify/notify');
-// const Slack = require('../notify/slack');
+const Notify = require('../notify/notify');
+const DiscordBot = require('../notify/discord');
 
 const Tickers = require('../storage/tickers');
 const Ta = require('../ta.js');
@@ -84,7 +84,7 @@ module.exports = {
     console.log(`${parameters.projectDir}/instance`)
     instances = require(`${parameters.projectDir}/instance`);
 
-    console.log(instances);
+    // console.log(instances);
 
     try {
       config = JSON.parse(fs.readFileSync(`${parameters.projectDir}/conf.json`, 'utf8'));
@@ -110,7 +110,7 @@ module.exports = {
     return (db = myDb);
   },
 
-  getLogger: function() {
+  getLogger: function () {
     if (logger) {
       return logger;
     }
@@ -136,7 +136,7 @@ module.exports = {
     return logger;
   },
 
-  getEventEmitter: function() {
+  getEventEmitter: function () {
     if (eventEmitter) {
       return eventEmitter;
     }
@@ -148,15 +148,31 @@ module.exports = {
     return instances;
   },
 
-  getNotifier: function() {
-    const notifiers = [];
+  createDiscord: async function () {
+    const { Client, Intents } = require('discord.js');
+    const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+    const config = this.getConfig();
+    await client.login(config.notify.discord.token)
+    const channel = client.channels.fetch(config.notify.discord.channelId)
 
-    // const config = this.getConfig();
-
-    // return (notify = new Notify(notifiers));
+    return channel
   },
 
-  getTickers: function() {
+  getNotifier: function () {
+    const notifiers = [];
+    const config = this.getConfig();
+
+    const channel = this.createDiscord()
+
+    const discordServer = _.get(config, 'notify.discord.token');
+    if (discordServer && discordServer.length > 0) {
+      notifiers.push(new DiscordBot(channel, this.getSystemUtil(), this.getLogger()));
+    }
+
+    return (notify = new Notify(notifiers));
+  },
+
+  getTickers: function () {
     if (tickers) {
       return tickers;
     }
@@ -164,7 +180,7 @@ module.exports = {
     return (tickers = new Tickers());
   },
 
-  getStrategyManager: function() {
+  getStrategyManager: function () {
     if (strategyManager) {
       return strategyManager;
     }
@@ -177,7 +193,7 @@ module.exports = {
     ));
   },
 
-  getExchangeCandleCombine: function() {
+  getExchangeCandleCombine: function () {
     if (exchangeCandleCombine) {
       return exchangeCandleCombine;
     }
@@ -185,7 +201,7 @@ module.exports = {
     return (exchangeCandleCombine = new ExchangeCandleCombine(this.getCandlestickRepository()));
   },
 
-  getTechnicalAnalysisValidator: function() {
+  getTechnicalAnalysisValidator: function () {
     if (technicalAnalysisValidator) {
       return technicalAnalysisValidator;
     }
@@ -194,7 +210,7 @@ module.exports = {
   },
 
 
-  getTickListener: function() {
+  getTickListener: function () {
     if (tickListener) {
       return tickListener;
     }
@@ -210,7 +226,7 @@ module.exports = {
     ));
   },
 
-  getTickerDatabaseListener: function() {
+  getTickerDatabaseListener: function () {
     if (tickerDatabaseListener) {
       return tickerDatabaseListener;
     }
@@ -218,7 +234,7 @@ module.exports = {
     return (tickerDatabaseListener = new TickerDatabaseListener(this.getTickerRepository()));
   },
 
-  getTickerRepository: function() {
+  getTickerRepository: function () {
     if (tickerRepository) {
       return tickerRepository;
     }
@@ -226,7 +242,7 @@ module.exports = {
     return (tickerRepository = new TickerRepository(this.getDatabase(), this.getLogger()));
   },
 
-  getSystemUtil: function() {
+  getSystemUtil: function () {
     if (systemUtil) {
       return systemUtil;
     }
@@ -234,7 +250,7 @@ module.exports = {
     return (systemUtil = new SystemUtil(this.getConfig()));
   },
 
-  getLogsRepository: function() {
+  getLogsRepository: function () {
     if (logsRepository) {
       return logsRepository;
     }
@@ -242,7 +258,7 @@ module.exports = {
     return (logsRepository = new LogsRepository(this.getDatabase()));
   },
 
-  getSignalLogger: function() {
+  getSignalLogger: function () {
     if (signalLogger) {
       return signalLogger;
     }
@@ -250,7 +266,7 @@ module.exports = {
     return (signalLogger = new SignalLogger(this.getSignalRepository()));
   },
 
-  getSignalRepository: function() {
+  getSignalRepository: function () {
     if (signalRepository) {
       return signalRepository;
     }
@@ -258,7 +274,7 @@ module.exports = {
     return (signalRepository = new SignalRepository(this.getDatabase()));
   },
 
-  getCandlestickRepository: function() {
+  getCandlestickRepository: function () {
     if (candlestickRepository) {
       return candlestickRepository;
     }
@@ -266,7 +282,7 @@ module.exports = {
     return (candlestickRepository = new CandlestickRepository(this.getDatabase()));
   },
 
-  getTickerLogRepository: function() {
+  getTickerLogRepository: function () {
     if (tickerLogRepository) {
       return tickerLogRepository;
     }
@@ -278,7 +294,7 @@ module.exports = {
     return config;
   },
 
-  getExchangeManager: function() {
+  getExchangeManager: function () {
     if (exchangeManager) {
       return exchangeManager;
     }
@@ -291,7 +307,7 @@ module.exports = {
     ));
   },
 
-  getExchanges: function() {
+  getExchanges: function () {
     if (exchanges) {
       return exchanges;
     }
@@ -307,7 +323,7 @@ module.exports = {
     ]);
   },
 
-  getQueue: function() {
+  getQueue: function () {
     if (queue) {
       return queue;
     }
@@ -315,7 +331,7 @@ module.exports = {
     return (queue = new Queue());
   },
 
-  getCandleImporter: function() {
+  getCandleImporter: function () {
     if (candleStickImporter) {
       return candleStickImporter;
     }
@@ -323,15 +339,15 @@ module.exports = {
     return (candleStickImporter = new CandleImporter(this.getCandlestickRepository()));
   },
 
-  getThrottler: function() {
+  getThrottler: function () {
     if (throttler) {
       return throttler;
     }
 
     return (throttler = new Throttler(this.getLogger()));
   },
-  
-  createTradeInstance: function() {
+
+  createTradeInstance: function () {
     this.getExchangeManager().init();
     return new Trade(
       this.getEventEmitter(),
