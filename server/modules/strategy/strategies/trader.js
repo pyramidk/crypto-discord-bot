@@ -1,8 +1,3 @@
-const { SD } = require('technicalindicators');
-const { SMA } = require('technicalindicators');
-const { Lowest } = require('technicalindicators');
-const { isTrendingUp } = require('technicalindicators');
-const { isTrendingDown } = require('technicalindicators');
 const SignalResult = require('../dict/signal_result');
 const TA = require('../../../utils/technical_analysis');
 const TechnicalPattern = require('../../../utils/technical_pattern');
@@ -66,58 +61,6 @@ module.exports = class {
     result.mergeDebug(TechnicalPattern.volumePump(candles3m.slice().reverse() || []));
 
     return result;
-  }
-
-  getBacktestColumns() {
-    return [
-      {
-        label: 'price2',
-        value: 'price2'
-      },
-      {
-        label: 'RSI',
-        value: 'rsi'
-      },
-      {
-        label: 'roc',
-        value: 'roc_1m'
-      },
-      {
-        label: 'roc_ma',
-        value: 'roc_ma',
-        type: 'icon'
-      },
-      {
-        label: 'Vol',
-        value: 'candles_1m.volume'
-      },
-      {
-        label: 'VolSd',
-        value: 'volume_sd'
-      },
-      {
-        label: 'VolV',
-        value: 'volume_v'
-      },
-      {
-        label: 'hint',
-        value: 'hint',
-        type: 'icon'
-      },
-      {
-        label: 'v',
-        value: 'v',
-        type: 'icon'
-      },
-      {
-        label: 'x',
-        value: 'x'
-      },
-      {
-        label: 'pivot',
-        value: 'pivot'
-      }
-    ];
   }
 
   getOptions() {

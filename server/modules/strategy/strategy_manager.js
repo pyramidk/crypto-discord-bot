@@ -209,57 +209,6 @@ module.exports = class StrategyManager {
     return results;
   }
 
-  getCustomTableColumnsForRow(strategyName, row) {
-    return this.getBacktestColumns(strategyName).map(cfg => {
-      // direct value of array or callback
-      const value = typeof cfg.value === 'function' ? cfg.value(row) : _.get(row, cfg.value);
-
-      let valueOutput = value;
-
-      if (typeof value !== 'undefined') {
-        switch (typeof value) {
-          case 'object':
-            valueOutput = Object.keys(value).length === 0 ? '' : JSON.stringify(value);
-
-            break;
-          case 'string':
-            valueOutput = value;
-
-            break;
-          default:
-            valueOutput = new Intl.NumberFormat('en-US', {
-              minimumSignificantDigits: 3,
-              maximumSignificantDigits: 4
-            }).format(value);
-            break;
-        }
-      }
-
-      const result = {
-        value: valueOutput,
-        type: cfg.type || 'default'
-      };
-
-      switch (cfg.type || 'default') {
-        case 'cross':
-          result.state = value > _.get(row, cfg.cross) ? 'over' : 'below';
-          break;
-        case 'histogram':
-          result.state = value > 0 ? 'over' : 'below';
-          break;
-        case 'oscillator':
-          if (value > (cfg.range && cfg.range.length > 0 ? cfg.range[0] : 80)) {
-            result.state = 'over';
-          } else if (value < (cfg.range && cfg.range.length > 1 ? cfg.range[1] : 20)) {
-            result.state = 'below';
-          }
-          break;
-      }
-
-      return result;
-    });
-  }
-
   getStrategyNames() {
     return this.getStrategies().map(strategy => strategy.getName());
   }
