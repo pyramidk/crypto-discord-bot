@@ -75,7 +75,8 @@ module.exports = class TickListener {
         strategyKey,
         exchange: symbol.exchange,
         symbol: symbol.symbol,
-        price: ticker.ask
+        price: ticker.ask,
+        period: strategy.options.period
       }
       this.notifier.send(`[${signal} (${strategyKey})` + `] ${symbol.exchange}:${symbol.symbol} - ${ticker.ask}`, messageInfo);
 
