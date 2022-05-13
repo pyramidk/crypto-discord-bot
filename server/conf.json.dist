@@ -1,0 +1,40 @@
+{
+    "exchanges": {
+       
+        "binance": {
+            "key": null,
+            "secret": null
+        },
+        "binance_futures": {
+            "key": null,
+            "secret": null
+        },
+        "binance_margin": {
+            "key": null,
+            "secret": null
+        },
+    },
+    "notify": {
+		// qq
+        "mail": {
+			"from": "",
+            "to": "example@example.de",
+            "username": "foo@foo.de",
+            "password": "bar",
+            "server": null,
+            "port": 465
+        },
+		"discord" : {
+            "channelId": "",
+            "token": ""
+        }
+    },
+    "log": {
+    },
+    "webserver": {
+        "ip": "0.0.0.0",
+        "port": 8080,
+        "username": null,
+        "password": null
+    },
+}
