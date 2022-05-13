@@ -15,15 +15,6 @@
         },
     },
     "notify": {
-		// qq
-        "mail": {
-			"from": "",
-            "to": "example@example.de",
-            "username": "foo@foo.de",
-            "password": "bar",
-            "server": null,
-            "port": 465
-        },
 		"discord" : {
             "channelId": "",
             "token": ""
