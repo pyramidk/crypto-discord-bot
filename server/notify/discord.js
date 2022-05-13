@@ -20,8 +20,8 @@ module.exports = class DiscordBot {
 			.setTitle(`${messageInfo.symbol}`)
 			// .setDescription(`price ${messageInfo.price}`)
 			.setThumbnail(url)
-			.setTimestamp()
-			.setFooter({ text: 'date', iconURL: '' });
+			// .setTimestamp()
+			.setFooter({ text: `${messageInfo.price}`, iconURL: '' });
 		this.channel.then((channel) => {
 			channel.send({ embeds: [sendEmbed], files: [pos] })
 		})
