@@ -1,43 +1,127 @@
-# TypeScript Next.js example
+# Crypto Trading Bot
 
-This is a really simple project that shows the usage of Next.js with TypeScript.
+[![Build Status](https://travis-ci.org/Haehnchen/crypto-trading-bot.svg?branch=master)](https://travis-ci.org/Haehnchen/crypto-trading-bot)
 
-## Deploy your own
+A **work in progress** Cryptocurrency for common exchanges like Bitfinex, Bitmex and Binance.
+As most trading bots just provide basic buy and sell signals they provide many stuff to get profitable eg exchange orders like stop-losses or stop-limits are not supported by main bots. Also the limitation of fixed timeframe and technical indicators must be broken
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example) or preview live with [StackBlitz](https://stackblitz.com/github/vercel/next.js/tree/canary/examples/with-typescript)
+**Not production ready** only basic functionality
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/vercel/next.js/tree/canary/examples/with-typescript&project-name=with-typescript&repository-name=with-typescript)
+## Features
 
-## How to use it?
+- Fully use Websocket for exchange communication to react as fast as possible on market
+- Multi pair support in one instance
+- sqlite3 storage for candles, tickers, ...
+- Webserver UI
+- Support for going "Short" and "Long"
+- Signal browser dashboard for pairs
+- Slack and email notification
+- TODO: Show possible arbitrage trades
 
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init) or [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/) to bootstrap the example:
+### Exchanges
 
-```bash
-npx create-next-app --example with-typescript with-typescript-app
-# or
-yarn create next-app --example with-typescript with-typescript-app
-# or
-pnpm create next-app -- --example with-typescript with-typescript-app
+- [Binance](https://www.binance.com/?ref=17569916)
+- [Binance Margin](https://www.binance.com/?ref=17569916)
+- [Binance Futures](https://www.binance.com/en/futures/ref/302644)
+
+## Technical stuff and packages
+
+- node.js
+- sqlite3
+- [technicalindicators](https://github.com/anandanand84/technicalindicators)
+- [tulipindicators - tulind](https://tulipindicators.org/list)
+- [TA-Lib](https://mrjbq7.github.io/ta-lib/)
+
+## How to use
+
+### Install packages
+
+```
+➜ npm install 
 ```
 
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
-
-## Notes
-
-This example shows how to integrate the TypeScript type system into Next.js. Since TypeScript is supported out of the box with Next.js, all we have to do is to install TypeScript.
+Create instance file for pairs and changes
 
 ```
-npm install --save-dev typescript
+cp instance.js.dist instance.js
 ```
 
-To enable TypeScript's features, we install the type declarations for React and Node.
+Provide a configuration with your exchange credentials
 
 ```
-npm install --save-dev @types/react @types/react-dom @types/node
+cp conf.json.dist conf.json
 ```
 
-When we run `next dev` the next time, Next.js will start looking for any `.ts` or `.tsx` files in our project and builds it. It even automatically creates a `tsconfig.json` file for our project with the recommended settings.
+Create a new sqlite database use bot.sql scheme to create the tables
 
-Next.js has built-in TypeScript declarations, so we'll get autocompletion for Next.js' modules straight away.
+```
+sqlite3 bot.db < bot.sql
+```
 
-A `type-check` script is also added to `package.json`, which runs TypeScript's `tsc` CLI in `noEmit` mode to run type-checking separately. You can then include this, for example, in your `test` scripts.
+Lets start it
+
+```
+npm start
+```
+
+
+## Setting Up Discord Bot
+
+
+## Webserver
+
+Some browser links
+
+- UI: http://127.0.0.1:8080
+
+## Web UI
+
+### Dashboard
+
+![Webserver UI](documentation/cryptobot.png 'Webserver UI')
+
+## Custom Strategies
+
+For custom strategies use [var/strategies](var/strategies) folder.
+
+```
+# simple file structure
+var/strategies/your_strategy.js
+
+# or wrap strategy into any sub folder depth
+var/strategies/my_strategy/my_strategy.js
+var/strategies/subfolder1/our_strategy/our_strategy.js
+```
+
+### Full Trade Example
+
+An example `instance.js` which trades can be found inside `instance.js.dist_trade`. Rename it or move the content to you file.
+
+```js
+const c = (module.exports = {});
+
+c.symbols = [
+  {
+    symbol: 'ETHUSDT',
+    exchange: 'binance_futures',
+    periods: ['1m', '15m', '1h'],
+    trade: {
+      currency_capital: 10,
+      strategies: [
+        {
+          strategy: 'dip_catcher',
+          interval: '15m',
+          options: {
+            period: '15m'
+          }
+        }
+      ]
+    },
+  }
+];
+```
+
+
+## Related Links
+
+### Trading Bots Inspiration
